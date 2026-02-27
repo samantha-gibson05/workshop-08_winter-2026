@@ -1,14 +1,14 @@
 ---
 title: "Workshop 8 TEMPLATE"
-subtitle: "insert your section time here"
-author: "insert your name here"
-date: "insert your name here"
+subtitle: "Friday 12pm"
+author: "Sami Gibson"
+date: "2/27/26"
 format:
   html:
     toc: true # use this to display a table of contents
 execute:
   message: false # use this to make sure messages don't show up
-  warning: false # use this to make sure warnings don't show upl
+  warning: false # use this to make sure warnings don't show up
 ---
 
 In this workshop, we will answer the question: How do specific leaf area, water treatment, and species influence plant mass?  
@@ -44,9 +44,7 @@ library(ggeffects) # getting model predictions
 library(MuMIn) # model selection
 
 # read in your data here
-
-
-
+drought_exp <- read_excel(here('data',"Valliere_etal_EcoApps_Data.xlsx")) 
 ```
 
 ```{r}
