@@ -17,7 +17,7 @@ In this workshop, we will answer the question: How do specific leaf area, water 
 
 **Water treatment** is a categorical variable (i.e. a *factor*) with 2 levels: drought stressed (DS) and well watered (WW).  
 
-**Species** is a categorical variable (again, a *factor*) with 6 levels.  
+**Species** is a categorical variable (again, a *factor*) with 7 levels.  
 
 | Species name                 | Species code | Common name        |
 |------------------------------|--------------|--------------------|
@@ -44,7 +44,7 @@ library(ggeffects) # getting model predictions
 library(MuMIn) # model selection
 
 # read in your data here
-drought_exp <- read_excel(here('data',"Valliere_etal_EcoApps_Data.xlsx")) 
+drought_exp <- read_xlsx(here('data',"Valliere_etal_EcoApps_Data.xlsx"), sheet="First Harvest") 
 ```
 
 ```{r}
@@ -75,11 +75,11 @@ Data source: Valliere, Justin; Zhang, Jacqueline; Sharifi, M.; Rundel, Philip (2
 ```{r}
 #| label: data cleaning
 
-# 
-drought_exp_clean <- drought_exp 
-  # 
-  clean_names() 
-  # 
+# create clean data set using drought_exp
+drought_exp_clean <- drought_exp |>
+  # cleans column headers and makes format the same
+  clean_names() |>
+  # creates new column with species name
   mutate(species_name = case_match(
     species,
     "ENCCAL" ~ "Encelia californica", # bush sunflower
@@ -89,14 +89,14 @@ drought_exp_clean <- drought_exp
     "SALLEU" ~ "Salvia leucophylla", # purple sage
     "STIPUL" ~ "Stipa pulchra", # purple needlegrass
     "LOTSCO" ~ "Lotus scoparius" # deerweed
-  )) 
-  # 
+  )) |>
+  # creates columns with water treatment name
   mutate(water_treatment = case_match(
     water,
     "WW" ~ "Well watered",
     "DS" ~ "Drought stressed"
-  ))  
-  # 
+  )) |>  
+  # makes species name and water treatment a factor
   mutate(species_name = as_factor(species_name),
          species_name = fct_relevel(species_name,
                                     "Lotus scoparius",
@@ -105,22 +105,27 @@ drought_exp_clean <- drought_exp
                                     "Encelia californica",
                                     "Stipa pulchra",
                                     "Eschscholzia californica",
-                                    "Grindelia camporum")) 
+                                    "Grindelia camporum")) |>
   mutate(water_treatment = as_factor(water_treatment),
          water_treatment = fct_relevel(water_treatment,
                                        "Drought stressed",
-                                       "Well watered")) 
-  #
+                                       "Well watered")) |>
+  # selects only the follwoing columns
   select(species_name, water_treatment, sla, total_g)
 ```
 
 Insert code to double check the structure of the data frame here.  
 
-
-
+```{r}
+str(drought_exp_clean)
+```
 
 Insert code to display 10 random rows from the data frame here.  
 
+```{r}
+drought_exp_clean |> slice_sample(n = 10)
+
+```
 
 
 
@@ -136,6 +141,16 @@ Label the axes with units where appropriate.
 Add a title describing the relationship (e.g. as SLA increases, total mass ______). 
 
 
+```{r}
+ggplot(data = drought_exp_clean,
+       aes(x = sla,
+           y = total_g)) +
+  geom_point(color = 'magenta') +
+  labs(x = 'Specific Leaf Area (cm^2^/g)',
+      y = 'Total Mass (g)',
+      title = 'as SLA increases, total mass increases')
+
+```
 
 
 
@@ -149,6 +164,16 @@ Add a title describing the differences in (mean or median) plant mass between wa
 
 
 
+```{r}
+ggplot(data = drought_exp_clean,
+       aes(x = water_treatment, 
+           y = total_g)) +
+  geom_boxplot() +
+  geom_jitter() +
+  labs(x = 'Water Treatment Type',
+       y = 'Total Mass (g)',
+       title = 'Well Watered Plants have Greater Mean Mass')
+```
 
 
 
@@ -164,6 +189,23 @@ Add a title describing the differences in (mean or median) plant mass between sp
 Bonus: order the x-axis by decreasing mean plant mass _and_ wrap the long species names using the `label_wrap()` function from the `scales` package.
 
 
+```{r}
+drought_exp_clean_ordered <- drought_exp_clean |>
+  group_by(species_name) |>
+  mutate(mean_mass = mean(total_g, na.rm = TRUE)) |>
+  ungroup() |>
+  mutate(species_name = fct_reorder(species_name, mean_mass, .desc = TRUE))
+
+ggplot(data = drought_exp_clean_ordered,
+       aes(x = species_name, 
+           y = total_g)) +
+  geom_boxplot() +
+  geom_jitter() +
+  scale_x_discrete(labels = label_wrap(12)) +
+  labs(x = 'Species Name',
+       y = 'Total Mass (g)',
+       title = 'Mean Total Plant Mass Differs Across Species')
+```
 
 
 
